@@ -23,19 +23,14 @@ function Flow {
         } elseif ($Action -eq "push") {
             git checkout $DefaultBranch
 			$published = branch-published $DevelopBranch;
-			
-			if ($published) {
-	            git merge $DevelopBranch --no-ff -m "[merge] push $DevelopBranch"
-			} else {
-				git rebase $DevelopBranch
-			}
+	        git merge $DevelopBranch --no-ff -m "[merge] push $DevelopBranch"
 			git checkout $DevelopBranch
 
         } elseif ($Action -eq "finish") {
             git checkout $DefaultBranch
             git merge $DevelopBranch --no-ff -m "[merge] finished $DevelopBranch"
             if ($?) {
-                #git branch -d $DevelopBranch
+                git branch -d $DevelopBranch
             }
 
         } elseif ($Action -eq "squash") {
@@ -59,6 +54,36 @@ function Flow {
     function category-hotfix {
         $HotfixBranchName = "$HotfixBranchPrefix$Name";
 
+		function category-hotfix-push([string]$MergeMessage) {
+            git checkout $DefaultBranch
+			git merge $HotfixBranchName --no-ff -m $MergeMessage
+            if ($?) {
+                git checkout $DevelopBranch
+				git merge $HotfixBranchName --no-ff -m $MergeMessage
+			}
+			git checkout $HotfixBranchName
+
+			#$published = branch-published $DefaultBranch
+			
+			#if ($published) {
+			#	git merge $HotfixBranchName --no-ff -m $MergeMessage
+			#} else {
+			#	git rebase $HotfixBranchName
+			#}
+
+            #if ($?) {
+			#	$published = branch-published $DevelopBranch
+            #    git checkout $DevelopBranch
+			#	if ($published) {
+			#		git merge $HotfixBranchName --no-ff -m $MergeMessage
+			#	} else {
+			#		git rebase $HotfixBranchName
+			#	}
+            #}
+
+			#git checkout $HotfixBranchName
+		}
+
         if ($Action -eq "start") {
             git checkout $DefaultBranch -b $HotfixBranchName
 
@@ -67,28 +92,11 @@ function Flow {
             git rebase $DefaultBranch
 
         } elseif ($Action -eq "push") {
-            git checkout $DefaultBranch
-			$published = branch-published $HotfixBranchName
-
-			if ($published) {
-				git merge $HotfixBranchName --no-ff -m "[merge] push $HotfixBranchName"
-			} else {
-				git rebase $HotfixBranchName
-			}
-			git checkout $HotfixBranchName
+			category-hotfix-push "[merge] push $HotfixBranchName";
 
         } elseif ($Action -eq "finish") {
-            git checkout $DefaultBranch
-            git merge $HotfixBranchName --no-ff -m "[merge] finished $HotfixBranchName"
-
-            if ($?) {
-                git checkout $DevelopBranch
-                git rebase $DefaultBranch
-
-                if ($?) {
-                    git branch -d $HotfixBranchName
-                }
-            }
+			category-hotfix-push "[merge] finished $HotfixBranchName";
+            git branch -d $HotfixBranchName
 
         } elseif ($Action -eq "squash") {
             git checkout $HotfixBranchName
@@ -120,13 +128,7 @@ function Flow {
 
         } elseif ($Action -eq "push") {
             git checkout $DevelopBranch
-			$published = branch-published $FeatureBranchName;
-			
-			if ($published) {
-	            git merge $FeatureBranchName --no-ff -m "[merge] push $FeatureBranchName"
-			} else {
-				git rebase $FeatureBranchName
-			}
+	        git merge $FeatureBranchName --no-ff -m "[merge] push $FeatureBranchName"
 			git checkout $FeatureBranchName
 
         } elseif ($Action -eq "finish") {
@@ -216,8 +218,11 @@ function Flow {
     }
     
 	function branch-published([string]$BranchName) {
-		$Ret = git ls-remote --heads origin $BranchName
-		return ($Ret -ne $null)
+		#$Ret = git ls-remote --heads origin $BranchName
+		$Range = "origin/$BranchName..$BranchName"
+		$Ret = git log --oneline $Range
+		$Ret = [string]::IsNullOrEmpty($Ret)
+		return $Ret;
 	}
 
     if ($Category -eq "feature" -or $Category -eq "f") { 
