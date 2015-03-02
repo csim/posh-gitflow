@@ -1,7 +1,7 @@
 function Flow {
     param(
         [Parameter(Position=0, Mandatory=$true)][string]$Category,
-        [Parameter(Position=1)][string]$Name = "",
+        [Parameter(Position=1)][string]$NameOrAction = "",
         [Parameter(Position=2)][string]$Action = "",
         [Parameter(Position=3)][string]$Arg1 = ""
     )
@@ -10,45 +10,7 @@ function Flow {
     $DevelopBranch = "dev"
     $FeatureBranchPrefix = "f-"
     $HotfixBranchPrefix = "h-"
-
-    function category-feature {
-        $FeatureBranchName = "$FeatureBranchPrefix$Name";
-        
-        if ($Action -eq "start") {
-            git checkout $DevelopBranch -b $FeatureBranchName
-
-        } elseif ($Action -eq "pull") {
-            git checkout $FeatureBranchName
-            git rebase $DevelopBranch
-
-        } elseif ($Action -eq "push") {
-            git checkout $DevelopBranch
-            git merge $FeatureBranchName --no-ff -m "[merge] push $FeatureBranchName"
-
-        } elseif ($Action -eq "finish") {
-            git checkout $DevelopBranch
-            git merge $FeatureBranchName --no-ff -m "[merge] finished $FeatureBranchName"
-            if ($?) {
-                git branch -d $FeatureBranchName
-            }
-
-        } elseif ($Action -eq "squash") {
-            git checkout $FeatureBranchName
-            $CommonAncestor = git merge-base $DevelopBranch $FeatureBranchName
-            git rebase -i $CommonAncestor
-
-        } elseif ($Action -eq "pending") {
-            $Range = "$DevelopBranch..$FeatureBranchName"
-            git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
-        
-        } elseif ($Action -eq "") {
-            git checkout $FeatureBranchName
-
-        } else 
-        {
-            Write-Host "Invalid action."
-        }
-    }
+	$Name = $NameOrAction;
 
     function category-develop {
         if ($Action -eq "start") {
@@ -60,7 +22,14 @@ function Flow {
 
         } elseif ($Action -eq "push") {
             git checkout $DefaultBranch
-            git merge $DevelopBranch --no-ff -m "[merge] push $DevelopBranch"
+			$published = branch-published $DevelopBranch;
+			
+			if ($published) {
+	            git merge $DevelopBranch --no-ff -m "[merge] push $DevelopBranch"
+			} else {
+				git rebase $DevelopBranch
+			}
+			git checkout $DevelopBranch
 
         } elseif ($Action -eq "finish") {
             git checkout $DefaultBranch
@@ -99,7 +68,14 @@ function Flow {
 
         } elseif ($Action -eq "push") {
             git checkout $DefaultBranch
-            git merge $HotfixBranchName --no-ff -m "[merge] push $HotfixBranchName"
+			$published = branch-published $HotfixBranchName
+
+			if ($published) {
+				git merge $HotfixBranchName --no-ff -m "[merge] push $HotfixBranchName"
+			} else {
+				git rebase $HotfixBranchName
+			}
+			git checkout $HotfixBranchName
 
         } elseif ($Action -eq "finish") {
             git checkout $DefaultBranch
@@ -120,11 +96,57 @@ function Flow {
             git rebase -i $CommonAncestor
 
         } elseif ($Action -eq "pending") {
-            $Range = "$DefaultBranch..$DevelopBranch"
+            $Range = "$DevelopBranch..$HotfixBranchName"
             git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
 
         } elseif ($Action -eq "") {
             git checkout $HotfixBranchName
+
+        } else 
+        {
+            Write-Host "Invalid action."
+        }
+    }
+
+    function category-feature {
+        $FeatureBranchName = "$FeatureBranchPrefix$Name";
+        
+        if ($Action -eq "start") {
+            git checkout $DevelopBranch -b $FeatureBranchName
+
+        } elseif ($Action -eq "pull") {
+            git checkout $FeatureBranchName
+            git rebase $DevelopBranch
+
+        } elseif ($Action -eq "push") {
+            git checkout $DevelopBranch
+			$published = branch-published $FeatureBranchName;
+			
+			if ($published) {
+	            git merge $FeatureBranchName --no-ff -m "[merge] push $FeatureBranchName"
+			} else {
+				git rebase $FeatureBranchName
+			}
+			git checkout $FeatureBranchName
+
+        } elseif ($Action -eq "finish") {
+            git checkout $DevelopBranch
+            git merge $FeatureBranchName --no-ff -m "[merge] finished $FeatureBranchName"
+            if ($?) {
+                git branch -d $FeatureBranchName
+            }
+
+        } elseif ($Action -eq "squash") {
+            git checkout $FeatureBranchName
+            $CommonAncestor = git merge-base $DevelopBranch $FeatureBranchName
+            git rebase -i $CommonAncestor
+
+        } elseif ($Action -eq "pending") {
+            $Range = "$DevelopBranch..$FeatureBranchName"
+            git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
+        
+        } elseif ($Action -eq "") {
+            git checkout $FeatureBranchName
 
         } else 
         {
@@ -193,9 +215,15 @@ function Flow {
         }       
     }
     
+	function branch-published([string]$BranchName) {
+		$Ret = git ls-remote --heads origin $BranchName
+		return ($Ret -ne "")
+	}
+
     if ($Category -eq "feature" -or $Category -eq "f") { 
         category-feature; 
     } elseif ($Category -eq "develop" -or $Category -eq $DevelopBranch) { 
+		$Action = $NameOrAction;
         category-develop; 
     } elseif ($Category -eq "hotfix") { 
         category-hotfix; 
