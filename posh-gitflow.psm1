@@ -217,7 +217,7 @@ function Flow {
     
 	function branch-published([string]$BranchName) {
 		$Ret = git ls-remote --heads origin $BranchName
-		return ($Ret -ne "")
+		return ($Ret -ne $null)
 	}
 
     if ($Category -eq "feature" -or $Category -eq "f") { 
