@@ -20,6 +20,10 @@ function Flow {
             git checkout $DevelopBranch
             git rebase $DefaultBranch
 
+        } elseif ($Action -eq "publish") {
+            git checkout $DevelopBranch
+            git push --set-upstream origin $DevelopBranch
+
         } elseif ($Action -eq "push") {
             git checkout $DefaultBranch
 			$published = branch-published $DevelopBranch;
@@ -52,6 +56,12 @@ function Flow {
     }
 
     function category-hotfix {
+		if ($Name -eq "") {
+			$Branches = git branch
+			$Branches | ForEach-Object { if ($_.Contains($HotfixBranchPrefix)) { Write-Host $_; } }
+			return;
+		}
+
         $HotfixBranchName = "$HotfixBranchPrefix$Name";
 
 		function category-hotfix-push([string]$MergeMessage) {
@@ -87,6 +97,14 @@ function Flow {
         if ($Action -eq "start") {
             git checkout $DefaultBranch -b $HotfixBranchName
 
+        } elseif ($Action -eq "publish") {
+            git checkout $HotfixBranchName
+            git push --set-upstream origin $HotfixBranchName
+
+        } elseif ($Action -eq "unpublish") {
+            git checkout $HotfixBranchName
+            git push --delete origin $HotfixBranchName
+
         } elseif ($Action -eq "pull") {
             git checkout $HotfixBranchName
             git rebase $DefaultBranch
@@ -117,14 +135,29 @@ function Flow {
     }
 
     function category-feature {
-        $FeatureBranchName = "$FeatureBranchPrefix$Name";
         
+		if ($Name -eq "") {
+			$Branches = git branch
+			$Branches | ForEach-Object { if ($_.Contains($FeatureBranchPrefix)) { Write-Host $_; } }
+			return;
+		}
+
+        $FeatureBranchName = "$FeatureBranchPrefix$Name";
+
         if ($Action -eq "start") {
             git checkout $DevelopBranch -b $FeatureBranchName
 
         } elseif ($Action -eq "pull") {
             git checkout $FeatureBranchName
             git rebase $DevelopBranch
+
+        } elseif ($Action -eq "publish") {
+            git checkout $FeatureBranchName
+            git push --set-upstream origin $FeatureBranchName
+
+        } elseif ($Action -eq "unpublish") {
+            git checkout $FeatureBranchName
+            git push --delete origin $FeatureBranchName
 
         } elseif ($Action -eq "push") {
             git checkout $DevelopBranch
@@ -233,7 +266,7 @@ function Flow {
     } elseif ($Category -eq "hotfix") { 
         category-hotfix; 
     } elseif ($Category -eq "environment" -or $Category -eq "env") { 
-        category-environment; 
+        category-environment;
     } else {
         Write-Host "Invalid category."
     }
