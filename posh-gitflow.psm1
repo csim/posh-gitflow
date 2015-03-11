@@ -1,6 +1,6 @@
 function Flow {
     param(
-        [Parameter(Position=0, Mandatory=$true)][string]$Category,
+        [Parameter(Position=0)][string]$Category = "",
         [Parameter(Position=1)][string]$NameOrAction = "",
         [Parameter(Position=2)][string]$Action = "",
         [Parameter(Position=3)][string]$Arg1 = ""
@@ -27,12 +27,12 @@ function Flow {
         } elseif ($Action -eq "push") {
             git checkout $DefaultBranch
 			$published = branch-published $DevelopBranch;
-	        git merge $DevelopBranch --no-ff -m "[merge] push $DevelopBranch"
+	        git merge $DevelopBranch -m "[merge] push $DevelopBranch"
 			git checkout $DevelopBranch
 
         } elseif ($Action -eq "finish") {
             git checkout $DefaultBranch
-            git merge $DevelopBranch --no-ff -m "[merge] finished $DevelopBranch"
+            git merge $DevelopBranch -m "[merge] finished $DevelopBranch"
             if ($?) {
                 git branch -d $DevelopBranch
             }
@@ -44,7 +44,7 @@ function Flow {
 
         } elseif ($Action -eq "pending") {
             $Range = "$DefaultBranch..$DevelopBranch"
-            git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
+            git log --color --no-merges --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
 
         } elseif ($Action -eq "") {
             git checkout $DevelopBranch
@@ -56,7 +56,7 @@ function Flow {
     }
 
     function category-hotfix {
-		if ($Name -eq "") {
+		if ($Name -eq "" -or $Name -eq "list") {
 			$Branches = git branch
 			$Branches | ForEach-Object { if ($_.Contains($HotfixBranchPrefix)) { Write-Host $_; } }
 			return;
@@ -66,17 +66,17 @@ function Flow {
 
 		function category-hotfix-push([string]$MergeMessage) {
             git checkout $DefaultBranch
-			git merge $HotfixBranchName --no-ff -m $MergeMessage
-            if ($?) {
+			git merge $HotfixBranchName -m $MergeMessage
+            
+			if ($?) {
                 git checkout $DevelopBranch
-				git merge $HotfixBranchName --no-ff -m $MergeMessage
+				git merge $HotfixBranchName -m $MergeMessage
 			}
-			git checkout $HotfixBranchName
 
 			#$published = branch-published $DefaultBranch
 			
 			#if ($published) {
-			#	git merge $HotfixBranchName --no-ff -m $MergeMessage
+			#	git merge $HotfixBranchName -m $MergeMessage
 			#} else {
 			#	git rebase $HotfixBranchName
 			#}
@@ -85,7 +85,7 @@ function Flow {
 			#	$published = branch-published $DevelopBranch
             #    git checkout $DevelopBranch
 			#	if ($published) {
-			#		git merge $HotfixBranchName --no-ff -m $MergeMessage
+			#		git merge $HotfixBranchName -m $MergeMessage
 			#	} else {
 			#		git rebase $HotfixBranchName
 			#	}
@@ -111,9 +111,11 @@ function Flow {
 
         } elseif ($Action -eq "push") {
 			category-hotfix-push "[merge] push $HotfixBranchName";
+			git checkout $HotfixBranchName
 
         } elseif ($Action -eq "finish") {
 			category-hotfix-push "[merge] finished $HotfixBranchName";
+			git checkout $DefaultBranch
             git branch -d $HotfixBranchName
 
         } elseif ($Action -eq "squash") {
@@ -123,7 +125,7 @@ function Flow {
 
         } elseif ($Action -eq "pending") {
             $Range = "$DevelopBranch..$HotfixBranchName"
-            git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
+            git log --color --no-merges --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
 
         } elseif ($Action -eq "") {
             git checkout $HotfixBranchName
@@ -136,7 +138,7 @@ function Flow {
 
     function category-feature {
         
-		if ($Name -eq "") {
+		if ($Name -eq "" -or $Name -eq "list") {
 			$Branches = git branch
 			$Branches | ForEach-Object { if ($_.Contains($FeatureBranchPrefix)) { Write-Host $_; } }
 			return;
@@ -161,12 +163,12 @@ function Flow {
 
         } elseif ($Action -eq "push") {
             git checkout $DevelopBranch
-	        git merge $FeatureBranchName --no-ff -m "[merge] push $FeatureBranchName"
+	        git merge $FeatureBranchName -m "[merge] push $FeatureBranchName"
 			git checkout $FeatureBranchName
 
         } elseif ($Action -eq "finish") {
             git checkout $DevelopBranch
-            git merge $FeatureBranchName --no-ff -m "[merge] finished $FeatureBranchName"
+            git merge $FeatureBranchName -m "[merge] finished $FeatureBranchName"
             if ($?) {
                 git branch -d $FeatureBranchName
             }
@@ -178,7 +180,7 @@ function Flow {
 
         } elseif ($Action -eq "pending") {
             $Range = "$DevelopBranch..$FeatureBranchName"
-            git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
+            git log --color --no-merges --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
         
         } elseif ($Action -eq "") {
             git checkout $FeatureBranchName
@@ -203,18 +205,19 @@ function Flow {
             } elseif ($Name -eq "prod") {
                 $Source = $DefaultBranch
             } else {
-                Write-Host "Invalid Name."
+                Write-Host "Invalid Environment Name."
             }
 
             if ($Source -ne "") {
                 $Range = "$Name..$Source"
-                git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
+                #git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
+				git log --no-merges --color --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
             }
         
         } elseif ($Action -eq "deploy") {
             if ($Name -eq "hotfix") {
                 git checkout hotfix
-                git merge $DefaultBranch --ff
+                git merge $DefaultBranch -m "[merge] deploy $Name"
                 if ($?) {
                     git push
                     git checkout $DefaultBranch
@@ -222,7 +225,7 @@ function Flow {
 
             } elseif ($Name -eq "stage") {
                 git checkout stage
-                git merge $DevelopBranch --ff
+                git merge $DevelopBranch -m "[merge] deploy $Name"
                 if ($?) {
                     git push
                     git checkout $DevelopBranch
@@ -235,7 +238,7 @@ function Flow {
                 }
 
                 git checkout prod
-                git merge $Source --ff
+                git merge $Source -m "[merge] deploy $Name"
                 if ($?) {
                     git push
                     git checkout $Source
@@ -244,6 +247,26 @@ function Flow {
             } else {
                 Write-Host "Invalid name."
             }
+
+		} elseif ($Action -eq "swap") {
+
+            if ($Name -eq "prod") {
+				git checkout prod
+
+				Write-Host ""
+				$response = Read-Host -Prompt "Migrate prod database? [y/n/abort]"
+
+				if ($response -eq "abort") {
+					return;
+				}
+				
+				if ($response -eq "y") {
+					msbuild "c:\source\vega\vega.sln"
+					vega migrate -e prod
+				}
+				
+				azure site swap Scout20 production prod
+			}
 
         } elseif ($Action -eq "") {
             git checkout $Name
@@ -258,15 +281,22 @@ function Flow {
 		return $Ret;
 	}
 
-    if ($Category -eq "feature" -or $Category -eq "f") { 
-        category-feature; 
-    } elseif ($Category -eq "develop" -or $Category -eq $DevelopBranch) { 
+	$DevelopCategories = @("develop", $DevelopBranch, "d");
+	$HotfixCategories = @("hotfix", "fx", "h");
+	$FeatureCategories = @("feature", "f");
+	$EnvironmentCategories = @("environment", "env", "e");
+
+    if ($DevelopCategories -contains $Category) { 
 		$Action = $NameOrAction;
         category-develop; 
-    } elseif ($Category -eq "hotfix") { 
+    } elseif ($HotfixCategories -contains $Category) {
         category-hotfix; 
-    } elseif ($Category -eq "environment" -or $Category -eq "env") { 
+	} elseif ($FeatureCategories -contains $Category) {
+        category-feature; 
+	} elseif ($EnvironmentCategories -contains $Category) {
         category-environment;
+	} elseif ($Category -eq"") {
+		git branch
     } else {
         Write-Host "Invalid category."
     }
