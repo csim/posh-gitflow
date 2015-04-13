@@ -34,7 +34,6 @@ function Flow {
 
         } elseif ($Action -eq "merge") {
             git checkout $DefaultBranch
-			$published = branch-published $DevelopBranch;
 	        git merge $DevelopBranch -m "[merge] $DevelopBranch"
 			git checkout $DevelopBranch
 
@@ -293,7 +292,7 @@ function Flow {
         }       
     }
     
-	function category-publish {
+	function category-push {
 		git push origin $DefaultBranch
 		git push origin $DevelopBranch
 	}
@@ -309,7 +308,7 @@ function Flow {
 	$DevelopCategories = @($DevelopBranch, "develop", "dev", "d");
 	$HotfixCategories = @("hotfix", "fx", "h");
 	$FeatureCategories = @("feature", "f");
-	$PublishCategories = @("publish", "pub", "p");
+	$PushCategories = @("push", "p");
 	$EnvCategories = @("environment", "env", "e");
 
     if ($DevelopCategories -contains $Category) { 
@@ -319,11 +318,11 @@ function Flow {
         category-hotfix; 
 	} elseif ($FeatureCategories -contains $Category) {
         category-feature; 
-	} elseif ($PublishCategories -contains $Category) {
-        category-publish; 
+	} elseif ($PushCategories -contains $Category) {
+        category-push; 
 	} elseif ($EnvCategories -contains $Category) {
         category-environment;
-	} elseif ($Category -eq"") {
+	} elseif ($Category -eq "") {
 		git branch
     } else {
         Write-Host "Invalid category."
