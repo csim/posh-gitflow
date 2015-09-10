@@ -116,7 +116,7 @@ function Flow {
             git checkout $HotfixBranchName
             git push --delete origin $HotfixBranchName
 
-        } elseif ($Action -eq "pull") {
+        } elseif ($Action -eq "rebase") {
             git checkout $HotfixBranchName
             git rebase $DefaultBranch
 
@@ -164,7 +164,7 @@ function Flow {
         } elseif ($Action -eq "start") {
             git checkout $DevelopBranch -b $FeatureBranchName
 
-        } elseif ($Action -eq "pull") {
+        } elseif ($Action -eq "rebase") {
             git checkout $FeatureBranchName
             git rebase $DevelopBranch
 
