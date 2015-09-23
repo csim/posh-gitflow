@@ -205,25 +205,26 @@ function Flow {
 
     function category-environment {
 
-		$EnvBranchName = "$EnvBranchPrefix$Name";
 
         if ($Action -eq "pending") {
 
             $Source = ""            
             if ($Name -eq "hotfix") {
-                $Source = $DefaultBranch
+                $Source = $DefaultBranch;
+                $EnvBranchName = "origin/" + $DefaultBranch
             } elseif ($Name -eq "stage") {
-                $Source = $DevelopBranch
-            } elseif ($Name -eq "dev") {
-                $Source = $DefaultBranch
+                $Source = $DevelopBranch;
+                $EnvBranchName = "origin/" + $DevelopBranch
             } elseif ($Name -eq "prod") {
                 $Source = $DefaultBranch
+        		$EnvBranchName = "$EnvBranchPrefix$Name";
             } else {
                 Write-Host "Invalid Environment Name."
             }
 
             if ($Source -ne "") {
                 $Range = "$EnvBranchName..$Source"
+                Write-Host $Range
                 #git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
 				git log --no-merges --color --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
             }
