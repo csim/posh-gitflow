@@ -205,6 +205,7 @@ function Flow {
 
     function category-environment {
 
+        $EnvBranchName = "$EnvBranchPrefix$Name";
 
         if ($Action -eq "pending") {
 
@@ -232,20 +233,10 @@ function Flow {
         } elseif ($Action -eq "deploy") {
 
             if ($Name -eq "hotfix") {
-                git checkout $EnvBranchName
-                git merge $DefaultBranch -m "[merge] deploy $Name"
-                if ($?) {
-                    git push
-                    git checkout $DefaultBranch
-                }
+                git push origin $DefaultBranch
 
             } elseif ($Name -eq "stage") {
-                git checkout $EnvBranchName
-                git merge $DevelopBranch -m "[merge] deploy $Name"
-                if ($?) {
-                    git push
-                    git checkout $DevelopBranch
-                }
+                git push origin $DevelopBranch
 
             } elseif ($Name -eq "prod") {
                 $Source = $Arg1
