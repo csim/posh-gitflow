@@ -233,10 +233,16 @@ function Flow {
         } elseif ($Action -eq "deploy") {
 
             if ($Name -eq "hotfix") {
-                git push origin $DefaultBranch
+                git checkout $DefaultBranch
+                if ($?) {
+                    git push
+                }
 
             } elseif ($Name -eq "stage") {
-                git push origin $DevelopBranch
+                git checkout $DevelopBranch
+                if ($?) {
+                    git push
+                }
 
             } elseif ($Name -eq "prod") {
                 $Source = $Arg1
