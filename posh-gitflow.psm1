@@ -39,10 +39,8 @@ function Flow {
 
         } elseif ($Action -eq "finish") {
             git checkout $DefaultBranch
-            git merge $DevelopBranch -m "[merge] finished $DevelopBranch"
-            if ($?) {
-                git branch -d $DevelopBranch
-            }
+	        git merge $DevelopBranch -m "[merge] $DevelopBranch"
+			git checkout $DevelopBranch
 
         } elseif ($Action -eq "squash") {
             git checkout $DevelopBranch
@@ -51,6 +49,7 @@ function Flow {
 
         } elseif ($Action -eq "pending") {
             $Range = "$DefaultBranch..$DevelopBranch"
+            Write-Host $Range
             git log --color --no-merges --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
 
         } else 
@@ -68,7 +67,7 @@ function Flow {
 
         $HotfixBranchName = "$HotfixBranchPrefix$Name";
 
-		function category-hotfix-push([string]$MergeMessage) {
+		function category-hotfix-finish([string]$MergeMessage) {
             git checkout $DefaultBranch
 			git merge $HotfixBranchName -m $MergeMessage
             
@@ -121,11 +120,11 @@ function Flow {
             git rebase $DefaultBranch
 
         } elseif ($Action -eq "merge") {
-			category-hotfix-push "[merge] $HotfixBranchName";
+			category-hotfix-finish "[merge] $HotfixBranchName";
 			git checkout $HotfixBranchName
 
         } elseif ($Action -eq "finish") {
-			category-hotfix-push "[merge] finished $HotfixBranchName";
+			category-hotfix-finish "[merge] finished $HotfixBranchName";
 			git checkout $DefaultBranch
             git branch -d $HotfixBranchName
 
@@ -135,7 +134,8 @@ function Flow {
             git rebase -i $CommonAncestor
 
         } elseif ($Action -eq "pending") {
-            $Range = "$DevelopBranch..$HotfixBranchName"
+            $Range = "$DefaultBranch..$HotfixBranchName"
+            Write-Host $Range
             git log --color --no-merges --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
 
         } else 
