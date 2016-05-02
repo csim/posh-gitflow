@@ -227,12 +227,15 @@ function Flow {
                 $Range = "$EnvBranchName..$Source"
                 Write-Host $Range
                 #git log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
-				git log --no-merges --color --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
+                git log --no-merges --color --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
             }
         
         } elseif ($Action -eq "deploy") {
 
             if ($Name -eq "hotfix") {
+                git checkout $DefaultBranch
+                git push
+
                 git checkout $EnvBranchName
                 git merge $Source -m "[merge] deploy $Name"
                 if ($?) {
@@ -241,9 +244,11 @@ function Flow {
                 }
 
                 git checkout $DefaultBranch
-                git push
                 
             } elseif ($Name -eq "stage") {
+                git checkout $DevelopBranch
+                git push
+
                 git checkout $EnvBranchName
                 git merge $Source -m "[merge] deploy $Name"
                 if ($?) {
@@ -251,20 +256,18 @@ function Flow {
                 }
 
                 git checkout $DevelopBranch
-                git push
 
             } elseif ($Name -eq "prod") {
-                $Source = $Arg1
-                if ($Source -eq "") {
-                    $Source = $DefaultBranch
-                }
+                git checkout $DefaultBranch
+                git push
 
                 git checkout $EnvBranchName
-                git merge $Source -m "[merge] deploy $Name"
+                git merge $DefaultBranch -m "[merge] deploy $Name"
                 if ($?) {
                     git push
-                    git checkout $Source
                 }
+
+                git checkout $DefaultBranch
 
             } else {
                 Write-Host "Invalid name."
