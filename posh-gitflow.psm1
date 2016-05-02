@@ -237,7 +237,7 @@ function Flow {
                 git push
 
                 git checkout $EnvBranchName
-                git merge $Source -m "[merge] deploy $Name"
+                git merge $DefaultBranch -m "[merge] deploy $Name"
                 if ($?) {
                     git push
                     git checkout $Source
@@ -250,7 +250,7 @@ function Flow {
                 git push
 
                 git checkout $EnvBranchName
-                git merge $Source -m "[merge] deploy $Name"
+                git merge $DevelopBranch -m "[merge] deploy $Name"
                 if ($?) {
                     git push
                 }
