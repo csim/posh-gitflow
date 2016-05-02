@@ -212,13 +212,13 @@ function Flow {
             $Source = ""            
             if ($Name -eq "hotfix") {
                 $Source = $DefaultBranch;
-                $EnvBranchName = "origin/" + $DefaultBranch
+                $EnvBranchName = "$EnvBranchPrefix$Name";
             } elseif ($Name -eq "stage") {
                 $Source = $DevelopBranch;
-                $EnvBranchName = "origin/" + $DevelopBranch
+                $EnvBranchName = "$EnvBranchPrefix$Name";
             } elseif ($Name -eq "prod") {
                 $Source = $DefaultBranch
-        		$EnvBranchName = "$EnvBranchPrefix$Name";
+                $EnvBranchName = "$EnvBranchPrefix$Name";
             } else {
                 Write-Host "Invalid Environment Name."
             }
@@ -242,6 +242,7 @@ function Flow {
 
                 git checkout $DefaultBranch
                 git push
+                
             } elseif ($Name -eq "stage") {
                 git checkout $EnvBranchName
                 git merge $Source -m "[merge] deploy $Name"
