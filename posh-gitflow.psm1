@@ -234,12 +234,18 @@ function Flow {
 
             if ($Name -eq "hotfix") {
                 git checkout $DefaultBranch
+                git push
+                
+                git checkout $EnvBranchName
                 if ($?) {
                     git push
                 }
 
             } elseif ($Name -eq "stage") {
                 git checkout $DevelopBranch
+                git push
+
+                git checkout $EnvBranchName
                 if ($?) {
                     git push
                 }
