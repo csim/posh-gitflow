@@ -207,7 +207,7 @@ function Flow {
 
         $EnvBranchName = "$EnvBranchPrefix$Name";
 
-        if ($Action -eq "pending") {
+        if ($Action -eq "pending" -or $Action -eq "p") {
 
             $Source = ""            
             if ($Name -eq "hotfix") {
@@ -230,7 +230,7 @@ function Flow {
                 git log --no-merges --color --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
             }
         
-        } elseif ($Action -eq "deploy") {
+        } elseif ($Action -eq "deploy" -or $Action -eq "d") {
 
             if ($Name -eq "hotfix") {
                 git checkout $DefaultBranch
