@@ -237,7 +237,7 @@ function Flow {
                 git push
 
                 git checkout $EnvBranchName
-                git merge $DefaultBranch -m "[merge] deploy $Name"
+                git merge $DefaultBranch --no-ff -m "[merge] deploy $Name"
                 if ($?) {
                     git push
                     git checkout $Source
@@ -250,7 +250,7 @@ function Flow {
                 git push
 
                 git checkout $EnvBranchName
-                git merge $DevelopBranch -m "[merge] deploy $Name"
+                git merge $DevelopBranch --no-ff -m "[merge] deploy $Name"
                 if ($?) {
                     git push
                 }
@@ -262,7 +262,7 @@ function Flow {
                 git push
 
                 git checkout $EnvBranchName
-                git merge $DefaultBranch -m "[merge] deploy $Name"
+                git merge $DefaultBranch --no-ff -m "[merge] deploy $Name"
                 if ($?) {
                     git push
                 }
@@ -273,29 +273,29 @@ function Flow {
                 Write-Host "Invalid name."
             }
 
-		} elseif ($Action -eq "swap") {
+		# } elseif ($Action -eq "swap") {
 
-            if ($Name -eq "prod") {
-				git checkout $EnvBranchName
+        #     if ($Name -eq "prod") {
+		# 		git checkout $EnvBranchName
 
-				Write-Host ""
-				$response = Read-Host -Prompt "Migrate prod database? [y/n/abort]"
+		# 		Write-Host ""
+		# 		$response = Read-Host -Prompt "Migrate prod database? [y/n/abort]"
 
-				if ($response -eq "abort") {
-					return;
-				}
+		# 		if ($response -eq "abort") {
+		# 			return;
+		# 		}
 				
-				if ($response -eq "y") {
-					msbuild "c:\source\vega\vega.sln"
-					vega migrate -e prod
-				}
+		# 		if ($response -eq "y") {
+		# 			msbuild "c:\source\vega\vega.sln"
+		# 			vega migrate -e prod
+		# 		}
 	
-				if ($Arg1 -eq "") {
-					$Arg1 = "hotfix";
-				}
+		# 		if ($Arg1 -eq "") {
+		# 			$Arg1 = "hotfix";
+		# 		}
 
-				azure site swap Scout20 production $Arg1
-			}
+		# 		azure site swap Scout20 production $Arg1
+		# 	}
 
         } elseif ($Action -eq "") {
             git checkout $Name
