@@ -47,7 +47,7 @@ function Flow {
             $CommonAncestor = git merge-base $DevelopBranch $DefaultBranch 
             git rebase -i $CommonAncestor
 
-        } elseif ($Action -eq "pending") {
+        } elseif ($Action -eq "pending" -or $Action -eq "p") {
             $Range = "$DefaultBranch..$DevelopBranch"
             Write-Host $Range
             git log --color --no-merges --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
@@ -133,7 +133,7 @@ function Flow {
             $CommonAncestor = git merge-base $DefaultBranch $HotfixBranchName
             git rebase -i $CommonAncestor
 
-        } elseif ($Action -eq "pending") {
+        } elseif ($Action -eq "pending" -or $Action -eq "p") {
             $Range = "$DefaultBranch..$HotfixBranchName"
             Write-Host $Range
             git log --color --no-merges --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
@@ -193,7 +193,7 @@ function Flow {
             $CommonAncestor = git merge-base $DevelopBranch $FeatureBranchName
             git rebase -i $CommonAncestor
 
-        } elseif ($Action -eq "pending") {
+        } elseif ($Action -eq "pending" -or $Action -eq "p") {
             $Range = "$DevelopBranch..$FeatureBranchName"
             git log --color --no-merges --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative $Range
         
